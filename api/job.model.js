@@ -4,7 +4,7 @@ const db = require('../data/models')('job');
 const getJob = async () => {
   return db.cb(async (db) => {
     const { task } = await db('job')
-      .select('task')
+      // .select('*')
       .orderByRaw('priority=0')
       .orderBy('priority')
       .orderBy('created_at')
