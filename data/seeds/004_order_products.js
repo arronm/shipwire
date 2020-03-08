@@ -1,5 +1,5 @@
 exports.seed = async (knex) => {
-  await knex('product').insert([
+  await knex('order_product').insert([
     {
       order_id: 1,
       product_id: 1,

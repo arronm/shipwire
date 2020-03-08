@@ -1,4 +1,4 @@
-import cleaner from 'knex-cleaner';
+const cleaner = require('knex-cleaner');
 
 exports.seed = knex => {
   return cleaner.clean(knex, {

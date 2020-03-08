@@ -1,5 +1,5 @@
 exports.seed = async (knex) => {
-  await knex('stream').insert([
+  await knex('order').insert([
     {
       stream_id: 1
     },
