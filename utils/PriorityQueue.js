@@ -5,7 +5,7 @@ TODO:
 
 */
 
-class PriorityQUeue {
+class PriorityQueue {
   constructor() {
     this.queue = {
       0: [],
@@ -41,4 +41,4 @@ class PriorityQUeue {
   };
 }
 
-module.exports = PriorityQUeue;
+module.exports = PriorityQueue;

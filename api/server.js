@@ -1,7 +1,8 @@
 const express = require('express');
 
 const logger = require('./middleware/logger');
-const db = require('../data/models.js')('user');
+const db = require('../data/models')('product');
+const prodDB = require('./product.model');
 
 const middleware = [
   express.json(),
@@ -11,21 +12,32 @@ const middleware = [
 const server = express();
 server.use(middleware);
 
-server.get('/user/:name', async (req, res) => {
-  const message = await db.add({
-    user: req.params.name,
-  });
-  return res.json({
-    message,
-  });
-});
+// Inventory
+// Order
+  // Place
+  // Info
 
-server.get('/get', async (req, res) => {
-  const message = await db.get();
+server.get('/total', async (req, res) => {
+
+  const total = await prodDB.getTotalInventory();
+
   return res.json({
-    message,
+    message: "Success",
+    total,
   });
-});
+})
+
+server.get('/add', async (req, res) => {
+  const data = await db.add({
+    name: 'B',
+    inventory: 150,
+  });
+
+  return res.json({
+    message: 'Added',
+    data,
+  });
+})
 
 server.get('/', (req, res) => {
   res.json({
