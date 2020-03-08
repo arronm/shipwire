@@ -27,6 +27,7 @@ exports.up = function(knex, Promise) {
 
     // Order Products
     .createTable('order_products', table => {
+      table.increments();
       table.integer('order_id')
         .references('order.id');
       table.integer('product_id')
@@ -35,6 +36,9 @@ exports.up = function(knex, Promise) {
         .notNullable();
       table.string('status', 32)
         .defaultsTo('received');
+
+      // each order should only have each product once
+      table.unique(['order_id', 'product_id']);
     })
 
   // Transaction
