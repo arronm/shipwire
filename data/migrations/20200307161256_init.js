@@ -44,6 +44,8 @@ exports.up = function(knex, Promise) {
   // Transaction
     .createTable('transaction', table => {
       table.increments();
+      table.int('order_products_id')
+        .references('order_products.id');
       table.string('type', 32)
         .notNullable();
       table.timestamp('created_at')
@@ -53,6 +55,8 @@ exports.up = function(knex, Promise) {
   // Job
     .createTable('job', table => {
       table.increments();
+      table.int('order_id')
+        .references('order.id');
       table.timestamp('created_at')
         .defaultTo(knex.fn.now());
       table.string('task', 128)
