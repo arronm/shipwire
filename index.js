@@ -3,5 +3,5 @@ const server = require('./api/server');
 const port = process.env.PORT || 4444;
 
 server.listen(port, () => {
-  log.info('Server listening on port ${port}', 'express-server');
+  log.info(`Server listening on port ${port}`, 'express-server');
 });
