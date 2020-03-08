@@ -11,7 +11,10 @@ exports.up = function(knex, Promise) {
     .createTable('order', table => {
       table.increments();
       table.int('stream_id')
-        .references('stream.id');
+        .references('stream.id')
+        .onDelete('RESTRICT')
+        .onUpdate('CASCADE');
+      table.string('header');
       table.timestamp('created_at')
         .defaultsTo(knex.fn.now());
     })
@@ -29,9 +32,13 @@ exports.up = function(knex, Promise) {
     .createTable('order_products', table => {
       table.increments();
       table.integer('order_id')
-        .references('order.id');
+        .references('order.id')
+        .onDelete('RESTRICT')
+        .onUpdate('CASCADE');
       table.integer('product_id')
-        .references('product.id');
+        .references('product.id')
+        .onDelete('RESTRICT')
+        .onUpdate('CASCADE');
       table.integer('quantity', 1)
         .notNullable();
       table.string('status', 32)
@@ -45,7 +52,9 @@ exports.up = function(knex, Promise) {
     .createTable('transaction', table => {
       table.increments();
       table.int('order_products_id')
-        .references('order_products.id');
+        .references('order_products.id')
+        .onDelete('RESTRICT')
+        .onUpdate('CASCADE');
       table.string('type', 32)
         .notNullable();
       table.timestamp('created_at')
@@ -56,19 +65,31 @@ exports.up = function(knex, Promise) {
     .createTable('job', table => {
       table.increments();
       table.int('order_id')
-        .references('order.id');
-      table.timestamp('created_at')
-        .defaultTo(knex.fn.now());
-      table.string('task', 128)
+        .notNullable()
+        .references('order.id')
+        .onDelete('RESTRICT')
+        .onUpdate('CASCADE');
+      table.string('header'); // Can be null?
+      table.string('lines', 256)
         .notNullable();
       table.integer('priority', 1)
         .defaultTo(0);
-      table.string('header', 32)
-        .notNullable();
+      table.string('stream', 32)
+        .notNullable()
+        .references('stream.id')
+        .onDelete('RESTRICT')
+        .onUpdate('CASCADE');
+      table.timestamp('created_at')
+          .defaultTo(knex.fn.now());
     });
 };
 
 exports.down = function(knex, Promise) {
   return knex.schema
-    .dropTableIfExists('user');
+    .dropTableIfExists('job')
+    .dropTableIfExists('transaction')
+    .dropTableIfExists('order_products')
+    .dropTableIfExists('product')
+    .dropTableIfExists('order')
+    .dropTableIfExists('stream')
 };

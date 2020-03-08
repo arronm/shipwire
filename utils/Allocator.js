@@ -35,14 +35,6 @@ class Allocator {
       ],
     ];
 
-    // expect to get inventory for all products
-    // this.inventory = {
-    //   "__total": 250,
-    //   "A": 100,
-    //   "B": 150,
-    //   "C": 0,
-    // }
-
     // Set up event listeners
     this.event.on('QueueProcessed', async () => {
       await allocator.watchQueue();
@@ -59,8 +51,12 @@ class Allocator {
   }
   
   async getTask() {
-    const task = await jobDB.getJob();
-    console.log(task);
+    this.task = await jobDB.getJob();
+    console.log(this.task.lines);
+
+    // Will need additional information when processing tasks (id)
+
+    // {"header":1,"lines":[{"product":"A","quantity":1},{"product":"C","quantity":1}]}
     // Get next task to work on
     return this.tmp.shift();
   }
@@ -154,7 +150,7 @@ class Allocator {
     // get total inventory
     // this.totalInventory = await productDB.getTotalInventory();
     this.inventory = await productDB.getInventory();
-
+    console.log(this.inventory);
     // TODO: Save transaction for starting allocator
 
     // set up initial task
