@@ -3,6 +3,7 @@ const express = require('express');
 const logger = require('./middleware/logger');
 const db = require('../data/models')('product');
 const prodDB = require('./product.model');
+const jobDB = require('./job.model');
 
 const middleware = [
   express.json(),
@@ -25,6 +26,19 @@ server.get('/total', async (req, res) => {
     message: "Success",
     total,
   });
+})
+
+server.get('/logs', async (req, res) => {
+  const data = await jobDB.add({
+    header: 2,
+    task: 'Three',
+    priority: 4,
+  });
+
+  return res.json({
+    message: 'Success',
+    data,
+  })
 })
 
 server.get('/add', async (req, res) => {

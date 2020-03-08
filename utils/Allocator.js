@@ -7,6 +7,7 @@ TODO: Add transaction logs in case we do somehow get invalid orders
 */
 const EventEmitter = require('events');
 const productDB = require('../api/product.model');
+const jobDB = require('../api/job.model');
 
 class Allocator {
   constructor() {
@@ -57,7 +58,9 @@ class Allocator {
     });
   }
   
-  getTask() {
+  async getTask() {
+    const task = await jobDB.getJob();
+    console.log(task);
     // Get next task to work on
     return this.tmp.shift();
   }
@@ -101,6 +104,7 @@ class Allocator {
     while (this.task) {
       // Sleep 1 second between tasks
       await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('----', this.task, '----');
 
       // Loop over each line item in the order
       for (const line of this.task) {
@@ -130,7 +134,7 @@ class Allocator {
       }
 
       // get next task
-      this.task = this.getTask();
+      this.task = await this.getTask();
     }
 
     this.event.emit('QueueProcessed');
@@ -140,7 +144,7 @@ class Allocator {
     while (!this.task) {
       // Check the queue every 5 seconds
       await new Promise(resolve => setTimeout(resolve, 1000));
-      this.task = this.getTask();
+      this.task = await this.getTask();
     }
 
     this.event.emit('QueueRefreshed');
@@ -154,7 +158,7 @@ class Allocator {
     // TODO: Save transaction for starting allocator
 
     // set up initial task
-    this.task = this.getTask();
+    this.task = await this.getTask();
     this.processQueue();
   }
 }
