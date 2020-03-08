@@ -10,10 +10,14 @@ const getJob = async () => {
       .orderBy('created_at')
       .limit(1)
       .first();
-    return {
-      ...task,
-      lines: JSON.parse(task.lines),
-    };
+    if (task) {
+      return {
+        ...task,
+        lines: JSON.parse(task.lines),
+      };
+    }
+
+    return task;
   });
 };
 
