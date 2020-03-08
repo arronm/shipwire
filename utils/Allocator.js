@@ -2,6 +2,8 @@
 
 Only valid orders should be added to the job queue
 
+TODO: Add transaction logs in case we do somehow get invalid orders
+
 */
 const EventEmitter = require('events');
 const productDB = require('../api/product.model');
@@ -11,7 +13,7 @@ class Allocator {
     this.event = new EventEmitter();
     this.startedAt = Date.now();
 
-    this.totalInventory = undefined;
+    // this.totalInventory = undefined;
     this.task = undefined;
 
     // each task in queue should be an entire order of line items
@@ -33,11 +35,12 @@ class Allocator {
     ];
 
     // expect to get inventory for all products
-    this.inventory = {
-      "A": 100,
-      "B": 150,
-      "C": 0,
-    }
+    // this.inventory = {
+    //   "__total": 250,
+    //   "A": 100,
+    //   "B": 150,
+    //   "C": 0,
+    // }
 
     // Set up event listeners
     this.event.on('QueueProcessed', async () => {
@@ -86,7 +89,7 @@ class Allocator {
       // fulfill line item
       this.inventory[product] -= quantity;
       // TODO: Update database and total inventory correctly
-      this.totalInventory -= quantity;
+      this.inventory.__total -= quantity;
       return true;
     }
 
@@ -122,7 +125,7 @@ class Allocator {
       }
 
       // check total inventory
-      if (this.totalInventory === 0) {
+      if (this.inventory.__total === 0) {
         this.event.emit('InventoryDepleted');
       }
 
@@ -145,7 +148,8 @@ class Allocator {
 
   async start() {
     // get total inventory
-    this.totalInventory = await productDB.getTotalInventory();
+    // this.totalInventory = await productDB.getTotalInventory();
+    this.inventory = await productDB.getInventory();
 
     // TODO: Save transaction for starting allocator
 
