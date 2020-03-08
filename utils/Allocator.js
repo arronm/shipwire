@@ -8,6 +8,7 @@ TODO: Add transaction logs in case we do somehow get invalid orders
 const EventEmitter = require('events');
 const productDB = require('../api/product.model');
 const jobDB = require('../api/job.model');
+const lineDB = require('../data/models')('order_products');
 
 class Allocator {
   constructor() {
@@ -51,14 +52,14 @@ class Allocator {
   }
   
   async getTask() {
-    this.task = await jobDB.getJob();
-    console.log(this.task.lines);
+    const task = await jobDB.getJob();
+    // console.log(this.task.lines);
 
     // Will need additional information when processing tasks (id)
 
     // {"header":1,"lines":[{"product":"A","quantity":1},{"product":"C","quantity":1}]}
-    // Get next task to work on
-    return this.tmp.shift();
+    // return next task to work on
+    return task;
   }
 
   generateListing() {
@@ -70,8 +71,11 @@ class Allocator {
     // TODO: Save transaction for stopping allocator
   }
 
-  updateLineStatus(line) {
+  async updateLineStatus(status, line) {
     // Update line item with new status
+    await lineDB.update(line.id, {
+      status,
+    });
   }
 
   saveTransaction(data) {
@@ -80,14 +84,24 @@ class Allocator {
     // TODO: Save to database, and update in-memory listing
   }
 
-  fulfillLineItem({ id, product, quantity }) {
+  async finishTask() {
+    // Log transaction prior to deletion?
+    await jobDB.remove(this.task.id);
+    // console.log(result);
+  }
+
+  async fulfillLineItem({ id, product, quantity }) {
     // check product inventory
     const canFulfill = (this.inventory[product] - quantity) >= 0;
 
     if (canFulfill) {
       // fulfill line item
       this.inventory[product] -= quantity;
-      // TODO: Update database and total inventory correctly
+
+      await productDB.update(id, {
+        inventory: this.inventory[product],
+      });
+
       this.inventory.__total -= quantity;
       return true;
     }
@@ -100,7 +114,6 @@ class Allocator {
     while (this.task) {
       // Sleep 1 second between tasks
       await new Promise(resolve => setTimeout(resolve, 1000));
-      // console.log('----', this.task, '----');
 
       /*
 
@@ -120,26 +133,25 @@ class Allocator {
       */
 
       // Loop over each line item in the order
-      for (const line of this.task) {
-        const { id, product, quantity } = line;
-        console.log(id, product, quantity);
+      for (const line of this.task.lines) {
+        // const { id, product, quantity } = line;
+
         // check product inventory for this line item
-        console.log('Pre Inventory:', this.inventory[product]);
-        // try to fulfill this line item
-        const fulfilled = this.fulfillLineItem(line);
-        console.log('Post Inventory:', this.inventory[product]);
+        const fulfilled = await this.fulfillLineItem(line);
 
         if (fulfilled) {
-          console.log('item fulfilled');
-          // TODO: trigger updateLineStatus('fulfilled');
+          await this.updateLineStatus('fulfilled', line);
           // TODO: log transaction?
           continue;
         }
         
-        // TODO: trigger updateLineStatus('unfulfilled');
+        await this.updateLineStatus('backordered', line);
         // TODO: log transaction?
         console.log('item backordered');
       }
+
+      // complete this task
+      await this.finishTask()
 
       // check total inventory
       if (this.inventory.__total === 0) {
@@ -165,13 +177,12 @@ class Allocator {
 
   async start() {
     // get total inventory
-    // this.totalInventory = await productDB.getTotalInventory();
     this.inventory = await productDB.getInventory();
-    console.log(this.inventory);
-    // TODO: Save transaction for starting allocator
-
+    
     // set up initial task
     this.task = await this.getTask();
+
+    // TODO: Save transaction for starting allocator
     this.processQueue();
   }
 }
