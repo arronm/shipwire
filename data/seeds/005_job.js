@@ -2,6 +2,7 @@ exports.seed = async (knex) => {
   await knex('job').insert([
     {
       order_id: 1,
+      header: 1,
       task: JSON.stringify({
         header: 1,
         lines: [
@@ -18,6 +19,7 @@ exports.seed = async (knex) => {
     },
     {
       order_id: 2,
+      header: 1,
       task: JSON.stringify({
         header: 1,
         lines: [
@@ -30,6 +32,7 @@ exports.seed = async (knex) => {
     },
     {
       order_id: 3,
+      header: 1,
       task: JSON.stringify({
         header: 1,
         lines: [
@@ -42,6 +45,7 @@ exports.seed = async (knex) => {
     },
     {
       order_id: 4,
+      header: 1,
       task: JSON.stringify({
         header: 1,
         lines: [
@@ -58,6 +62,7 @@ exports.seed = async (knex) => {
     },
     {
       order_id: 5,
+      header: 1,
       task: JSON.stringify({
         header: 1,
         lines: [
@@ -70,6 +75,7 @@ exports.seed = async (knex) => {
     },
     {
       order_id: 6,
+      header: 1,
       task: JSON.stringify({
         header: 1,
         lines: [
