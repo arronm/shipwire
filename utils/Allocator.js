@@ -100,7 +100,24 @@ class Allocator {
     while (this.task) {
       // Sleep 1 second between tasks
       await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('----', this.task, '----');
+      // console.log('----', this.task, '----');
+
+      /*
+
+        {
+          id: 1,  -- job id
+          order_id: 1,
+          header: '1',
+          lines: [
+            { id: 1, product: 'A', quantity: 1 }, -- line id
+            { id: 2, product: 'C', quantity: 1 }
+          ],
+          priority: 0,
+          stream: 1, -- stream id
+          created_at: '2020-03-08 20:21:14'
+        }
+
+      */
 
       // Loop over each line item in the order
       for (const line of this.task) {

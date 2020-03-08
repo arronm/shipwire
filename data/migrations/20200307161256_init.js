@@ -74,7 +74,7 @@ exports.up = function(knex, Promise) {
         .notNullable();
       table.integer('priority', 1)
         .defaultTo(0);
-      table.string('stream', 32)
+      table.int('stream', 32)
         .notNullable()
         .references('stream.id')
         .onDelete('RESTRICT')
