@@ -20,7 +20,7 @@ server.use(middleware);
 
 const rdb = require('../data/models');
 
-server.get('/order/place', async (req, res) => {
+server.post('/order/place', async (req, res) => {
 
   /*
     order
@@ -29,22 +29,14 @@ server.get('/order/place', async (req, res) => {
   const orderDB = rdb('order');
   const lineDB = rdb('order_products');
 
+
+  const { stream_id, header, lines } = req.body;
+
   // add order
   const order = await orderDB.add({
-    stream_id: 1,
-    header: '123',
+    stream_id,
+    header,
   });
-
-  const lines = [
-    {
-      product: 'A',
-      quantity: 2,
-    },
-    {
-      product: 'B',
-      quantity: 3,
-    },
-  ];
 
   const lineResults = []
   const products = {};
