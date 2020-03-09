@@ -3,7 +3,7 @@ const axios = require('axios');
 
 const randRange = (min, max) => Math.round((Math.random() * (max - min)) + min);
 
-const orderEndpoint = 'http://localhost:4444/order/test';
+const orderEndpoint = 'http://localhost:4444/order/place';
 const numStreams = 6;
 const products = [
   'A',
@@ -47,8 +47,6 @@ class Stream {
   }
 
   async sendOrders() {
-    // TODO: pass optional number of orders to generate to constructor
-    
     for (let i = 1; i <= this.numberOfOrders; i++) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       await axios.post(orderEndpoint, this.generateOrderData())
