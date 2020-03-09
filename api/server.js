@@ -108,7 +108,15 @@ server.get('/add', async (req, res) => {
     message: 'Added',
     data,
   });
-})
+});
+
+const ValidateOrder = require('./middleware/ValidateOrder');
+
+server.post('/order/test', ValidateOrder, (Req, res) => {
+  return res.json({
+    message: 'Ya ya, check the logs',
+  });
+});
 
 server.get('/', (req, res) => {
   res.json({
