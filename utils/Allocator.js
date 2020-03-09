@@ -26,6 +26,7 @@ class Allocator {
     });
 
     this.event.on('QueueRefreshed', async () => {
+      console.log('new task found');
       await allocator.processQueue();
     });
 
@@ -173,6 +174,7 @@ class Allocator {
 
   async watchQueue() {
     while (!this.task) {
+      console.log('waiting for new tasks')
       // Check the queue every 5 seconds
       await new Promise(resolve => setTimeout(resolve, 1000));
       this.task = await this.getTask();

@@ -18,15 +18,72 @@ server.use(middleware);
   // Place
   // Info
 
-server.get('/total', async (req, res) => {
+const rdb = require('../data/models');
 
-  const total = await prodDB.getTotalInventory();
+server.get('/order/place', async (req, res) => {
+
+  /*
+    order
+  */
+
+  const orderDB = rdb('order');
+  const lineDB = rdb('order_products');
+
+  // add order
+  const order = await orderDB.add({
+    stream_id: 1,
+    header: '123',
+  });
+
+  const lines = [
+    {
+      product: 'A',
+      quantity: 2,
+    },
+    {
+      product: 'B',
+      quantity: 3,
+    },
+  ];
+
+  const lineResults = []
+  const products = {};
+
+  // add lines
+  for (let line of lines) {
+    const product = await prodDB.getBy({ 'name': line.product });
+
+    // Keep product name for creating job
+    products[product[0].id] = line.product;
+
+    const lineResult = await lineDB.add({
+      order_id: order.id,
+      product_id: product[0].id,
+      quantity: line.quantity,
+      status: 'received',
+    });
+
+    lineResults.push(lineResult);
+  }
+
+  // add job
+  const job = await jobDB.add({
+    order_id: order.id,
+    header: order.header,
+    stream: order.stream_id,
+    lines: JSON.stringify(lineResults.map(({ id, product_id, quantity }) => ({
+      id,
+      product: products[product_id],
+      quantity,
+    }))),
+  });
 
   return res.json({
-    message: "Success",
-    total,
-  });
-})
+    order,
+    lineResults,
+    job
+  })
+});
 
 server.get('/logs', async (req, res) => {
   const data = await jobDB.add({

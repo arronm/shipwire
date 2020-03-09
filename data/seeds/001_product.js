@@ -2,11 +2,11 @@ exports.seed = async (knex) => {
   await knex('product').insert([
     {
       name: 'A',
-      inventory: 2,
+      inventory: 200,
     },
     {
       name: 'B',
-      inventory: 3,
+      inventory: 300,
     },
     {
       name: 'C',
