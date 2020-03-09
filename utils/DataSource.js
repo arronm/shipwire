@@ -1,8 +1,9 @@
 // Must be capable of generating one or more streams of orders
 const axios = require('axios');
 
-const randRange = (min, max) => Math.floor((Math.random() * max) + min);
+const randRange = (min, max) => Math.round((Math.random() * (max - min)) + min);
 
+const orderEndpoint = 'http://localhost:4444/order/test';
 const numStreams = 6;
 const products = [
   'A',
@@ -14,8 +15,9 @@ const products = [
 
 
 class Stream {
-  constructor(id) {
+  constructor(id, numberOfOrders) {
     this.id = id;
+    this.numberOfOrders = numberOfOrders;
   }
 
   generateOrderData() {
@@ -46,11 +48,10 @@ class Stream {
 
   async sendOrders() {
     // TODO: pass optional number of orders to generate to constructor
-    const endpoint = 'http://localhost:4444/order/test';
     
-    for (let i = 0; i <= 5; i++) {
+    for (let i = 1; i <= this.numberOfOrders; i++) {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      await axios.post(endpoint, this.generateOrderData())
+      await axios.post(orderEndpoint, this.generateOrderData())
     }
   }
 }
@@ -62,15 +63,16 @@ class DataSource {
     this.streams = [];
   }
 
-  createStream(streamId) {
-    const stream = new Stream(streamId);
+  createStream(streamId, numberOfOrders) {
+    const stream = new Stream(streamId, numberOfOrders);
     this.streams.push(stream);
     stream.sendOrders();
   }
 
   createStreams() {
     for (let i = 1; i <= numStreams; i++) {
-      this.createStream(i);
+      const numberOfOrders = randRange(10, 30);
+      this.createStream(i, numberOfOrders);
     }
   }
 }
