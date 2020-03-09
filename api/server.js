@@ -119,9 +119,10 @@ server.get('/inventory', async (req, res) => {
 
 const ValidateOrder = require('./middleware/ValidateOrder');
 
-server.post('/order/test', ValidateOrder, (Req, res) => {
+server.post('/order/test', ValidateOrder, (req, res) => {
   return res.json({
     message: 'Ya ya, check the logs',
+    order: req.body,
   });
 });
 
