@@ -10,7 +10,7 @@ const fs = require('fs');
 const util = require("util");
 
 const writeFile = util.promisify(fs.writeFile);
-const productDB = require('../api/product.model');
+const productDB = require('../api/routes/Product/product.model');
 const jobDB = require('../api/job.model');
 const lineDB = require('../data/models')('order_products');
 
@@ -32,6 +32,12 @@ class Allocator {
 
     this.event.on('InventoryDepleted', async () => {
       await this.generateListing();
+      process.exit();
+    });
+
+    process.on('SIGINT', async () => {
+      await this.generateListing();
+      // additional log / cleanup
       process.exit();
     });
   }
@@ -116,8 +122,9 @@ class Allocator {
     if (canFulfill) {
       // fulfill line item
       this.inventory[product] -= quantity;
+      const { id: product_id } = await productDB.getBy({ name: product }).first();
 
-      await productDB.update(id, {
+      await productDB.update(product_id, {
         inventory: this.inventory[product],
       });
 
@@ -186,7 +193,11 @@ class Allocator {
   async start() {
     // get initial inventory
     this.inventory = await productDB.getInventory();
-    console.log(this.inventory);
+    console.log('start', this.inventory);
+    
+    if (this.inventory.__total === 0) {
+      this.event.emit('InventoryDepleted');
+    }
     
     // set up initial task
     this.task = await this.getTask();

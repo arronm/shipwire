@@ -1,4 +1,4 @@
-const db = require('../data/models')('product');
+const db = require('../../../data/models')('product');
 
 // TODO: Depreciate this function
 const getTotalInventory = async () => {

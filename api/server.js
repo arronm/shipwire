@@ -2,7 +2,7 @@ const express = require('express');
 
 const logger = require('./middleware/logger');
 const db = require('../data/models')('product');
-const prodDB = require('./product.model');
+const prodDB = require('./routes/Product/product.model');
 const jobDB = require('./job.model');
 
 const middleware = [
@@ -99,7 +99,7 @@ server.get('/logs', async (req, res) => {
 })
 
 server.get('/add', async (req, res) => {
-  const data = await db.add({
+  const data = await prodDB.add({
     name: 'B',
     inventory: 150,
   });
@@ -109,6 +109,13 @@ server.get('/add', async (req, res) => {
     data,
   });
 });
+
+server.get('/inventory', async (req, res) => {
+  const data = await prodDB.get();
+  res.json({
+    data
+  })
+})
 
 const ValidateOrder = require('./middleware/ValidateOrder');
 

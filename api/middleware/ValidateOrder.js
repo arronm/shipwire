@@ -7,12 +7,6 @@ const ValidateOrder = async (req, res, next) => {
     if (!req.body.header) return res.status(500).json({
       message: 'Missing header',
     });
-
-    // has valid stream
-    const stream = await db('stream').get(req.body.stream);
-    if (!stream) return res.status(500).json({
-      message: 'Invalid stream',
-    });
     
     const lines = req.body.lines;
     for (let line of lines) {
