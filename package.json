@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev:test": "jest --watch --verbose",
+    "test:watch": "jest --watch --verbose",
+    "test:coverage": "jest --coverage",
     "dev:server": "nodemon index.js"
   },
   "jest": {
