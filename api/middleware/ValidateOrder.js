@@ -8,6 +8,7 @@ const ValidateOrder = async (req, res, next) => {
       message: 'Missing header',
     });
     
+    const uniqueProducts = new Set();
     const lines = req.body.lines;
     for (let line of lines) {
       // check line quantities
@@ -20,7 +21,14 @@ const ValidateOrder = async (req, res, next) => {
       if (!product.length > 0) return res.status(500).json({
         message: 'Invalid product',
       });
+
+      uniqueProducts.add(line.product);
     }
+
+    // check each product only exists once
+    if (lines.length !== uniqueProducts.length) return res.status(500).json({
+      message: 'Invalid Order, duplicate products',
+    });
 
     next();
   } catch (error) {
