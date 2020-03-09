@@ -1,4 +1,6 @@
 const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
 
 const logger = require('./middleware/logger');
 const db = require('../data/models')('product');
@@ -7,6 +9,8 @@ const jobDB = require('./job.model');
 
 const middleware = [
   express.json(),
+  cors(),
+  helmet(),
   logger,
 ];
 
@@ -21,11 +25,6 @@ server.use(middleware);
 const rdb = require('../data/models');
 
 server.post('/order/place', async (req, res) => {
-
-  /*
-    order
-  */
-
   const orderDB = rdb('order');
   const lineDB = rdb('order_products');
 
