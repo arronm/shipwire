@@ -6,6 +6,10 @@ TODO: Add transaction logs in case we do somehow get invalid orders
 
 */
 const EventEmitter = require('events');
+const fs = require('fs');
+const util = require("util");
+
+const writeFile = util.promisify(fs.writeFile);
 const productDB = require('../api/product.model');
 const jobDB = require('../api/job.model');
 const lineDB = require('../data/models')('order_products');
@@ -14,27 +18,7 @@ class Allocator {
   constructor() {
     this.event = new EventEmitter();
     this.startedAt = Date.now();
-
-    // this.totalInventory = undefined;
-    this.task = undefined;
-
-    // each task in queue should be an entire order of line items
-    this.tmp = [
-      [
-        { "id": 1, "product": "A", "quantity": 5 },
-        { "id": 2, "product": "B", "quantity": 5 },
-      ],
-      [
-        { "id": 1, "product": "A", "quantity": 5 },
-      ],
-      [
-        { "id": 2, "product": "B", "quantity": 3 },
-        { "id": 3, "product": "C", "quantity": 2 },
-      ],
-      [
-        { "id": 1, "product": "A", "quantity": 5 },
-      ],
-    ];
+    this.listing = []
 
     // Set up event listeners
     this.event.on('QueueProcessed', async () => {
@@ -45,30 +29,61 @@ class Allocator {
       await allocator.processQueue();
     });
 
-    this.event.on('InventoryDepleted', () => {
-      this.generateListing();
+    this.event.on('InventoryDepleted', async () => {
+      await this.generateListing();
       process.exit();
     });
   }
   
   async getTask() {
     const task = await jobDB.getJob();
-    // console.log(this.task.lines);
 
-    // Will need additional information when processing tasks (id)
-
-    // {"header":1,"lines":[{"product":"A","quantity":1},{"product":"C","quantity":1}]}
     // return next task to work on
     return task;
   }
 
-  generateListing() {
-    // Generate listing output for all orders process during run time
-    // Could alternatively keep a local version of listing to output
-      // would decrease db queries (if constantly running out of inventory)
-    console.log('Generate output listing');
+  createOutputString(list) {
+    let outputString = '';
+    for (let product in this.inventory) {
+      if (product === '__total') {
+        continue
+      }
+      outputString += list[product] || 0;
+    }
 
+    return outputString;
+  }
+
+  async generateListing() {
+    // Generate output listing from local buffer to save on db reads
+    const outputListing = this.listing.reduce((previous, current) => {
+      previous += current.header + ': ';
+      previous += this.createOutputString(current.received) + ' : ';
+      previous += this.createOutputString(current.fulfilled) + ' : ';
+      previous += this.createOutputString(current.backordered);
+      return previous + '\n';
+    }, 'header: received : fulfilled : backordered\n-----\n');
+
+    await writeFile("outputlisting.txt", outputListing)
+    console.log(outputListing)
     // TODO: Save transaction for stopping allocator
+  }
+
+  addReceivedListing() {
+    // save received status
+    this.currentListing = {
+      header: this.task.header,
+      ...this.currentListing,
+      received: this.task.lines.reduce((previous, current) => {
+        previous[current.product] = current.quantity;
+        return previous;
+      }, {})
+    }
+  }
+
+  updateListingStatus(status, line) {
+    // update current listing fulfilled / backordered based on current line
+    this.currentListing[status][line.product] = line.quantity;
   }
 
   async updateLineStatus(status, line) {
@@ -76,6 +91,8 @@ class Allocator {
     await lineDB.update(line.id, {
       status,
     });
+
+    this.updateListingStatus(status, line);
   }
 
   saveTransaction(data) {
@@ -85,6 +102,7 @@ class Allocator {
   }
 
   async finishTask() {
+    this.listing.push(this.currentListing);
     // Log transaction prior to deletion?
     await jobDB.remove(this.task.id);
     // console.log(result);
@@ -115,28 +133,17 @@ class Allocator {
       // Sleep 1 second between tasks
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      /*
+      this.currentListing = {
+        received: {},
+        fulfilled: {},
+        backordered: {},
+      };
 
-        {
-          id: 1,  -- job id
-          order_id: 1,
-          header: '1',
-          lines: [
-            { id: 1, product: 'A', quantity: 1 }, -- line id
-            { id: 2, product: 'C', quantity: 1 }
-          ],
-          priority: 0,
-          stream: 1, -- stream id
-          created_at: '2020-03-08 20:21:14'
-        }
-
-      */
+      this.addReceivedListing();
 
       // Loop over each line item in the order
       for (const line of this.task.lines) {
-        // const { id, product, quantity } = line;
-
-        // check product inventory for this line item
+        // check if we can fulfill this line item
         const fulfilled = await this.fulfillLineItem(line);
 
         if (fulfilled) {
@@ -147,7 +154,6 @@ class Allocator {
         
         await this.updateLineStatus('backordered', line);
         // TODO: log transaction?
-        console.log('item backordered');
       }
 
       // complete this task
@@ -176,8 +182,9 @@ class Allocator {
   }
 
   async start() {
-    // get total inventory
+    // get initial inventory
     this.inventory = await productDB.getInventory();
+    console.log(this.inventory);
     
     // set up initial task
     this.task = await this.getTask();
