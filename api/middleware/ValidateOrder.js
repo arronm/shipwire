@@ -13,7 +13,9 @@ const ValidateOrder = async (req, res, next) => {
     for (let line of lines) {
       // check line quantities
       if (line.quantity <= 0 || line.quantity > 5) return res.status(500).json({
-        message: 'Invalid order quantity',
+        status: 'error',
+        error: 'InvalidQuantity',
+        message: `Quantity {${line.quantity}} received, expecting quantity between 1 and 5.`,
       });
 
       // check product exists
