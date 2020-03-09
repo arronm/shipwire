@@ -10,6 +10,7 @@ const fs = require('fs');
 const util = require("util");
 
 const writeFile = util.promisify(fs.writeFile);
+const log = require('./logger');
 const productDB = require('../api/routes/Product/product.model');
 const jobDB = require('../api/job.model');
 const lineDB = require('../data/models')('order_products');
@@ -38,6 +39,7 @@ class Allocator {
     process.on('SIGINT', async () => {
       await this.generateListing();
       // additional log / cleanup
+      log.info('Allocator Interrupted.', 'allocator');
       process.exit();
     });
   }
