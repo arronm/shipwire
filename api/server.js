@@ -17,10 +17,17 @@ const middleware = [
 const server = express();
 server.use(middleware);
 
-// Inventory
+// Product
+  // Inventory
+  // Restock
+  // Add
+
 // Order
   // Place
   // Info
+
+// Stream
+  // Add
 
 const rdb = require('../data/models');
 
@@ -61,7 +68,7 @@ server.post('/order/place', async (req, res) => {
   const job = await jobDB.add({
     order_id: order.id,
     header: order.header,
-    stream: order.stream_id,
+    stream_id: order.stream_id,
     lines: JSON.stringify(lineResults.map(({ id, product_id, quantity }) => ({
       id,
       product: products[product_id],
@@ -75,19 +82,6 @@ server.post('/order/place', async (req, res) => {
     job
   })
 });
-
-server.get('/logs', async (req, res) => {
-  const data = await jobDB.add({
-    header: 2,
-    task: 'Three',
-    priority: 4,
-  });
-
-  return res.json({
-    message: 'Success',
-    data,
-  })
-})
 
 server.get('/add', async (req, res) => {
   const data = await prodDB.add({
@@ -116,6 +110,11 @@ server.post('/order/test', ValidateOrder, (req, res) => {
     order: req.body,
   });
 });
+
+// server.use('/api/books', books);
+// server.use('/api/auth', auth);
+// server.use('/api/reviews', reviews);
+// server.use('/api/docs', express.static(__dirname + '/docs'));
 
 server.get('/', (req, res) => {
   res.json({

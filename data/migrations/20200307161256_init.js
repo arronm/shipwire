@@ -69,12 +69,13 @@ exports.up = function(knex, Promise) {
         .references('order.id')
         .onDelete('RESTRICT')
         .onUpdate('CASCADE');
-      table.string('header'); // Can be null?
+      table.string('header')
+        .notNullable();
       table.string('lines', 256)
         .notNullable();
       table.integer('priority', 1)
         .defaultTo(0);
-      table.int('stream', 32)
+      table.int('stream_id', 32)
         .notNullable()
         .references('stream.id')
         .onDelete('RESTRICT')
