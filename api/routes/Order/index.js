@@ -13,6 +13,10 @@ const tables = {
 const validateOrder = require('../../middleware/ValidateOrder');
 const log = require('../../../utils/logger');
 
+// Order
+  // Place
+  // Info
+
 
 /**
  * @api {post} /order/create Create an order
@@ -45,15 +49,6 @@ const log = require('../../../utils/logger');
  *      "status": "error",
  *      "error": "InvalidQuantity",
  *      "message": "Quantity {12} received, expecting integer between 1 and 5.",
- *    }
- * 
- * @apiError NotFound Requested resource was not found.
- * @apiErrorExample NotFound-Response
- *  HTTP/1.1 404 Not Found
- *    {
- *      "status": "error",
- *      "error": "NotFound",
- *      "message": "No resource was found with the requested id (4)",
  *    }
  * 
  */
