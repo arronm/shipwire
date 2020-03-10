@@ -44,7 +44,7 @@ const log = require('../../../utils/logger');
  *
  * @apiError InvalidOrder Order did not match expected requirements.
  * @apiErrorExample InvalidOrder-Response
- *  HTTP/1.1 422 Unprocessable Entity
+ *  HTTP/1.1 400 BadRequest
  *    {
  *      "status": "error",
  *      "error": "InvalidOrder",
