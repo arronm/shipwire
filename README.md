@@ -2,7 +2,7 @@
 
  - Node installed
 
-#### Local Installation
+### Local Installation
 
 1. `git clone https://github.com/arronm/shipwire`
 1. `npm install`
@@ -10,7 +10,7 @@
 1. `npm run data:seed`
 
 
-#### Initial State & Test
+### Initial State & Test
 
 Initital inventory state is set up for the provided test. To change the initial state:
 
