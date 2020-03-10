@@ -11,6 +11,9 @@ const log = require('../../../utils/logger');
 router.get('/', validateOrder, async (req, res) => {
   try {
     // api
+    res.json({
+      message: 'Not Yet Implemented.',
+    });
   } catch (error) {
     const err = await log.err(error);
     res.status(500).json(err);

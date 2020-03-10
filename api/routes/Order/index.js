@@ -13,11 +13,6 @@ const tables = {
 const validateOrder = require('../../middleware/validateOrder');
 const log = require('../../../utils/logger');
 
-// Order
-  // Place
-  // Info
-
-
 /**
  * @api {post} /order/create Create an order
  * @apiName CreateOrder
@@ -113,6 +108,9 @@ router.post('/create', validateOrder, async (req, res) => {
 router.get('/status/:id', async (req, res) => {
   try {
     // api
+    res.json({
+      message: 'Not Yet Implemented.',
+    });
   } catch (error) {
     const err = await log.err(error);
     res.status(500).json(err);
