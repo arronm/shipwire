@@ -6,8 +6,8 @@
 
 1. `git clone https://github.com/arronm/shipwire`
 1. `npm install`
-1. `npx knex migrate:latest`
-1. `npx knex seed:run`
+1. `npm run data:latest`
+1. `npm run data:seed`
 
 
 #### Initial State & Test

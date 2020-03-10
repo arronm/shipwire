@@ -8,6 +8,8 @@
     "test:coverage": "jest --coverage",
     "test:once": "jest --verbose",
     "dev:server": "nodemon index.js",
+    "data:latest": "npx knex migrate:latest",
+    "data:seed": "npx knex seed:run",
     "allocator": "node utils/Allocator.js",
     "streams": "node utils/DataSource.js"
   },
