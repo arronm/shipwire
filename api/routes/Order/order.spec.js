@@ -16,7 +16,7 @@ describe('Order Endpoints', () => {
   it('validate quantity range', async (done) => {
     // test max quantity
     let quantity = 44;
-    let response = await request.post('/order/test')
+    let response = await request.post('/api/order/create')
       .send({
         stream_id: 1,
         header: '1',
@@ -37,7 +37,7 @@ describe('Order Endpoints', () => {
 
     // test min quantity
     quantity = -13;
-    response = await request.post('/order/test')
+    response = await request.post('/api/order/create')
       .send({
         stream_id: 1,
         header: '1',
@@ -61,7 +61,7 @@ describe('Order Endpoints', () => {
 
   it('validate data types', async (done) => {
     let quantity = 'a';
-    let response = await request.post('/order/test')
+    let response = await request.post('/api/order/create')
       .send({
         stream_id: 1,
         header: '1',
@@ -84,7 +84,7 @@ describe('Order Endpoints', () => {
   });
 
   it('validate products', async (done) => {
-    let response = await request.post('/order/test')
+    let response = await request.post('/api/order/create')
       .send({
         stream_id: 1,
         header: '1',
