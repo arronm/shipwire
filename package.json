@@ -7,7 +7,9 @@
     "test:watch": "jest --watch --verbose",
     "test:coverage": "jest --coverage",
     "test:once": "jest --verbose",
-    "dev:server": "nodemon index.js"
+    "dev:server": "nodemon index.js",
+    "allocator": "node utils/Allocator.js",
+    "streams": "node utils/DataSource.js"
   },
   "jest": {
     "testRunner": "jest-circus/runner",

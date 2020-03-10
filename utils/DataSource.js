@@ -5,6 +5,8 @@ const randRange = (min, max) => Math.round((Math.random() * (max - min)) + min);
 
 const orderEndpoint = 'http://localhost:4444/order/place';
 const numStreams = 6;
+
+// TODO: get product list from database
 const products = [
   'A',
   'B',
