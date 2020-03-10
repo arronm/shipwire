@@ -53,56 +53,62 @@ const log = require('../../../utils/logger');
  * 
  */
 router.post('/create', validateOrder, async (req, res) => {
-  const orderDB = tables.order;
-  const lineDB = tables.order_products;
-  const prodDB = tables.products;
-  const jobDB = tables.job;
+  try {
+    const orderDB = tables.order;
+    const lineDB = tables.order_products;
+    const prodDB = tables.products;
+    const jobDB = tables.job;
 
-  const { stream_id, header, lines } = req.body;
+    const { stream_id, header, lines } = req.body;
 
-  // add order
-  const order = await orderDB.add({
-    stream_id,
-    header,
-  });
-
-  const lineResults = []
-  const products = {};
-
-  // add lines
-  for (let line of lines) {
-    const product = await prodDB.getBy({ 'name': line.product });
-
-    // Keep product name for creating job
-    products[product[0].id] = line.product;
-
-    const lineResult = await lineDB.add({
-      order_id: order.id,
-      product_id: product[0].id,
-      quantity: line.quantity,
-      status: 'received',
+    // add order
+    const order = await orderDB.add({
+      stream_id,
+      header,
     });
 
-    lineResults.push(lineResult);
+    const lineResults = []
+    const products = {};
+
+    // add lines
+    for (let line of lines) {
+      const product = await prodDB.getBy({ 'name': line.product });
+
+      // Keep product name for creating job
+      products[product[0].id] = line.product;
+
+      const lineResult = await lineDB.add({
+        order_id: order.id,
+        product_id: product[0].id,
+        quantity: line.quantity,
+        status: 'received',
+      });
+
+      lineResults.push(lineResult);
+    }
+
+    // add job
+    const job = await jobDB.add({
+      order_id: order.id,
+      header: order.header,
+      stream_id: order.stream_id,
+      lines: JSON.stringify(lineResults.map(({ id, product_id, quantity }) => ({
+        id,
+        product: products[product_id],
+        quantity,
+      }))),
+    });
+
+    return res.json({
+      order,
+      lineResults,
+      job
+    })
+  } catch (error) {
+    const err = await log.err(error);
+    res.status(500).json(err);
   }
-
-  // add job
-  const job = await jobDB.add({
-    order_id: order.id,
-    header: order.header,
-    stream_id: order.stream_id,
-    lines: JSON.stringify(lineResults.map(({ id, product_id, quantity }) => ({
-      id,
-      product: products[product_id],
-      quantity,
-    }))),
-  });
-
-  return res.json({
-    order,
-    lineResults,
-    job
-  })
+  
 });
 
 module.exports = router;
