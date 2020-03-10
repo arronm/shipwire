@@ -1,17 +1,21 @@
 const express = require('express');
 const router = express.Router();
 
-const db = require('../../../data/models');
+const dbModels = require('../../../data/models');
 
-const tables = {
+const models = {
   order: require('./order.model'),
-  order_products: db('order_products'),
+  order_products: dbModels('order_products'),
   products: require('../Product/product.model'),
-  job: db('job'),
+  job: dbModels('job'),
 };
 
 const validateOrder = require('../../middleware/validateOrder');
 const log = require('../../../utils/logger');
+
+
+const createOrder = require('../../../services/createOrder');
+const createJob = require('../../../services/createJob');
 
 /**
  * @api {post} /order/create Create an order
@@ -51,95 +55,23 @@ const log = require('../../../utils/logger');
  */
 router.post('/create', validateOrder, async (req, res) => {
   try {
-    const orderTable = tables.order;
-    const lineTable = tables.order_products;
-    const productTable = tables.products;
-    const jobTable = tables.job;
-
-    const { stream_id, header, lines } = req.body;
-
-    // add order
-    const order = await orderTable.add({
-      stream_id,
-      header,
+    // TODO: Order and job should be wrapped in a transaction
+    const createdOrder = await createOrder(req.body, {
+      order: models.order,
+      product: models.products,
+      line: models.order_products,
     });
 
-    const lineResults = []
-    const products = {};
-
-    // add lines
-    for (let line of lines) {
-      const product = await productTable.getBy({ 'name': line.product });
-
-      // Keep product name for creating job
-      products[product[0].id] = line.product;
-
-      const lineResult = await lineTable.add({
-        order_id: order.id,
-        product_id: product[0].id,
-        quantity: line.quantity,
-        status: 'received',
-      });
-
-      lineResults.push(lineResult);
-    }
-
-    // add job
-    const job = await jobTable.add({
-      order_id: order.id,
-      header: order.header,
-      stream_id: order.stream_id,
-      lines: JSON.stringify(lineResults.map(({ id, product_id, quantity }) => ({
-        id,
-        product: products[product_id],
-        quantity,
-      }))),
-    });
+    const createdJob = await createJob(createOrder, { job: models.job });
 
     return res.json({
-      order,
-      lineResults,
-      job
-    })
+      order: createdOrder,
+      job: createdJob,
+    });
   } catch (error) {
     const err = await log.err(error);
     res.status(500).json(err);
   }
-});
-
-
-const createOrder = require('../../../services/createOrder');
-const createJob = require('../../../services/createJob');
-
-router.get('/testdata', async (req, res) => {
-  const order = {
-    stream_id: 2,
-    header: '3',
-    lines: [
-      {
-        product: 'A',
-        quantity: 4,
-      },
-      {
-        product: 'B',
-        quantity: 2,
-      },
-    ],
-  };
-
-  models = {
-    order: tables.order,
-    product: tables.products,
-    line: tables.order_products,
-  };
-
-  const createdOrder = await createOrder(order, models);
-  const createdJob = await createJob(createdOrder, { job: tables.job });
-
-  return res.json({
-    order: createdOrder,
-    job: createdJob,
-  });
 });
 
 router.get('/status/:id', async (req, res) => {
