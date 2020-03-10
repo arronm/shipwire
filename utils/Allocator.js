@@ -10,10 +10,13 @@ const fs = require('fs');
 const util = require("util");
 
 const writeFile = util.promisify(fs.writeFile);
+const makeDir = fs.promises.mkdir;
+
 const log = require('./logger');
-const productDB = require('../api/routes/Product/product.model');
-const jobDB = require('../api/job.model');
-const lineDB = require('../data/models')('order_products');
+
+const productTable = require('../api/routes/Product/product.model');
+const jobTable = require('../api/job.model');
+const lineTable = require('../data/models')('order_products');
 
 class Allocator {
   constructor() {
@@ -27,7 +30,6 @@ class Allocator {
     });
 
     this.event.on('QueueRefreshed', async () => {
-      console.log('new task found');
       await allocator.processQueue();
     });
 
@@ -42,10 +44,20 @@ class Allocator {
       log.info('Allocator Interrupted.', 'allocator');
       process.exit();
     });
+
+    process.on('unhandledRejection', (err) => {
+      console.log(err);
+      process.exit();
+    });
+
+    process.on('uncaughtException', (err) => {
+      console.log(err);
+      process.exit();
+    });
   }
   
   async getTask() {
-    const task = await jobDB.getJob();
+    const task = await jobTable.getJob();
 
     // return next task to work on
     return task;
@@ -73,7 +85,8 @@ class Allocator {
       return previous + '\n';
     }, 'header: received : fulfilled : backordered\n-----\n');
 
-    await writeFile("outputlisting.txt", outputListing)
+    await writeFile(process.cwd() + `/output/outputlisting_${this.startedAt}.txt`, outputListing)
+
     console.log(outputListing)
     // TODO: Save transaction for stopping allocator
   }
@@ -97,7 +110,7 @@ class Allocator {
 
   async updateLineStatus(status, line) {
     // Update line item with new status
-    await lineDB.update(line.id, {
+    await lineTable.update(line.id, {
       status,
     });
 
@@ -113,7 +126,7 @@ class Allocator {
   async finishTask() {
     this.listing.push(this.currentListing);
     // Log transaction prior to deletion?
-    await jobDB.remove(this.task.id);
+    await jobTable.remove(this.task.id);
     // console.log(result);
   }
 
@@ -124,9 +137,9 @@ class Allocator {
     if (canFulfill) {
       // fulfill line item
       this.inventory[product] -= quantity;
-      const { id: product_id } = await productDB.getBy({ name: product }).first();
+      const { id: product_id } = await productTable.getBy({ name: product }).first();
 
-      await productDB.update(product_id, {
+      await productTable.update(product_id, {
         inventory: this.inventory[product],
       });
 
@@ -183,7 +196,6 @@ class Allocator {
 
   async watchQueue() {
     while (!this.task) {
-      console.log('waiting for new tasks')
       // Check the queue every 5 seconds
       await new Promise(resolve => setTimeout(resolve, 1000));
       this.task = await this.getTask();
@@ -193,9 +205,11 @@ class Allocator {
   }
 
   async start() {
+    await makeDir(process.cwd() + '/output', { recursive: true });
+
     // get initial inventory
-    this.inventory = await productDB.getInventory();
-    console.log('start', this.inventory);
+    this.inventory = await productTable.getInventory();
+    console.log('starting inventory:', this.inventory);
     
     if (this.inventory.__total === 0) {
       this.event.emit('InventoryDepleted');
