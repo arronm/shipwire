@@ -1,13 +1,13 @@
-const AuthorizeStream = (req, res, next) => {
+const authStream = (req, res, next) => {
   // has valid stream
   try {
     const stream = await db('stream').get(req.body.stream);
-    if (!stream) return res.status(500).json({
+    if (!stream) return res.status(400).json({
       message: 'Invalid stream',
     });
 
     // has header
-    if (!req.body.header) return res.status(500).json({
+    if (!req.body.header) return res.status(400).json({
       message: 'Missing header',
     });
 
@@ -18,4 +18,4 @@ const AuthorizeStream = (req, res, next) => {
   }
 };
 
-module.exports = AuthorizeStream;
+module.exports = authStream;

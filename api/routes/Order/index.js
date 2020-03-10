@@ -54,15 +54,15 @@ const log = require('../../../utils/logger');
  */
 router.post('/create', validateOrder, async (req, res) => {
   try {
-    const orderDB = tables.order;
-    const lineDB = tables.order_products;
-    const prodDB = tables.products;
-    const jobDB = tables.job;
+    const orderTable = tables.order;
+    const lineTable = tables.order_products;
+    const productTable = tables.products;
+    const jobTable = tables.job;
 
     const { stream_id, header, lines } = req.body;
 
     // add order
-    const order = await orderDB.add({
+    const order = await orderTable.add({
       stream_id,
       header,
     });
@@ -72,12 +72,12 @@ router.post('/create', validateOrder, async (req, res) => {
 
     // add lines
     for (let line of lines) {
-      const product = await prodDB.getBy({ 'name': line.product });
+      const product = await productTable.getBy({ 'name': line.product });
 
       // Keep product name for creating job
       products[product[0].id] = line.product;
 
-      const lineResult = await lineDB.add({
+      const lineResult = await lineTable.add({
         order_id: order.id,
         product_id: product[0].id,
         quantity: line.quantity,
@@ -88,7 +88,7 @@ router.post('/create', validateOrder, async (req, res) => {
     }
 
     // add job
-    const job = await jobDB.add({
+    const job = await jobTable.add({
       order_id: order.id,
       header: order.header,
       stream_id: order.stream_id,
@@ -108,7 +108,15 @@ router.post('/create', validateOrder, async (req, res) => {
     const err = await log.err(error);
     res.status(500).json(err);
   }
-  
 });
+
+router.get('/status/:id', async (req, res) => {
+  try {
+    // api
+  } catch (error) {
+    const err = await log.err(error);
+    res.status(500).json(err);
+  }
+})
 
 module.exports = router;
