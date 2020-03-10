@@ -10,7 +10,7 @@ const tables = {
   job: db('job'),
 };
 
-const validateOrder = require('../../middleware/ValidateOrder');
+const validateOrder = require('../../middleware/validateOrder');
 const log = require('../../../utils/logger');
 
 // Order
@@ -42,13 +42,13 @@ const log = require('../../../utils/logger');
  *       }
  *     }
  *
- * @apiError InvalidQuantity Quantity critera for this request was not met
- * @apiErrorExample InvalidQuantity-Response
+ * @apiError InvalidOrder Order did not match expected requirements.
+ * @apiErrorExample InvalidOrder-Response
  *  HTTP/1.1 422 Unprocessable Entity
  *    {
  *      "status": "error",
- *      "error": "InvalidQuantity",
- *      "message": "Quantity {12} received, expecting integer between 1 and 5.",
+ *      "error": "InvalidOrder",
+ *      "message": "Expected quantity between 1-5, received {44}",
  *    }
  * 
  */

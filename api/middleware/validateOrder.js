@@ -13,18 +13,31 @@ const ValidateOrder = async (req, res, next) => {
         message: `Expected type for (quantity) to be number, but received ${typeof(line.quantity)}`,
       })
 
+      // check floats
+      if (line.quantity % 1 !== 0) return res.status(422).json({
+        status: 'error',
+        error: 'InvalidType',
+        message: `Expected type for (quantity) to be number, but received float.`,
+      })
+
       // check line quantities
       if (line.quantity <= 0 || line.quantity > 5) return res.status(400).json({
         status: 'error',
-        error: 'InvalidQuantity',
+        error: 'InvalidOrder',
         message: `Expected quantity between 1-5, received {${line.quantity}}`,
       });
 
+      if (typeof(line.product) !== 'string') return res.status(422).json({
+        status: 'error',
+        error: 'InvalidType',
+        message: `Expected type for (product) to be string, but received ${typeof(line.product)}.`,
+      })
+
       // check product exists
       const product = await db('product').getBy({ name: line.product });
-      if (!product.length > 0) return res.status(500).json({
+      if (!product.length > 0) return res.status(400).json({
         status: 'error',
-        error: 'InvalidProduct',
+        error: 'InvalidOrder',
         message: 'Product received does not exist.',
       });
 
@@ -34,8 +47,8 @@ const ValidateOrder = async (req, res, next) => {
     // check each product only exists once
     if (lines.length !== uniqueProducts.size) return res.status(400).json({
       status: 'error',
-      error: 'InvalidLineItems',
-      message: 'Order should not contain duplicate products on separate lines.',
+      error: 'InvalidOrder',
+      message: 'Received duplicate products in order.',
     });
 
     next();

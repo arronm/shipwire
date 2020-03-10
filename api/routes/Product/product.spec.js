@@ -8,7 +8,6 @@ describe('Product', () => {
   });
 
   it('Gets the test endpoint', async (done) => {
-    // Sends GET Request to /test endpoint
     const response = await request.get('/')
 
     expect(response.status).toBe(200)
