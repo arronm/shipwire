@@ -61,8 +61,8 @@ router.post('/create', validateOrder, async (req, res) => {
       product: models.products,
       line: models.order_products,
     });
-
-    const createdJob = await createJob(createOrder, { job: models.job });
+    
+    const createdJob = await createJob(createdOrder, { job: models.job });
 
     return res.json({
       order: createdOrder,
