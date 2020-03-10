@@ -6,6 +6,7 @@
   "scripts": {
     "test:watch": "jest --watch --verbose",
     "test:coverage": "jest --coverage",
+    "test:once": "jest --verbose",
     "dev:server": "nodemon index.js"
   },
   "jest": {

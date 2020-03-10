@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 
 const logger = require('./middleware/logger');
+const order = require('./routes/Order');
 const db = require('../data/models')('product');
 const prodDB = require('./routes/Product/product.model');
 const jobDB = require('./job.model');
@@ -111,9 +112,7 @@ server.post('/order/test', ValidateOrder, (req, res) => {
   });
 });
 
-// server.use('/api/books', books);
-// server.use('/api/auth', auth);
-// server.use('/api/reviews', reviews);
+server.use('/api/order', order);
 // server.use('/api/docs', express.static(__dirname + '/docs'));
 
 server.get('/', (req, res) => {

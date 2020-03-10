@@ -1,6 +1,14 @@
 const express = require('express');
-
 const router = express.Router();
+
+const db = require('../../../data/models');
+
+const tables = {
+  order: require('./order.model'),
+  order_products: db('order_products'),
+  products: require('../Product/product.model'),
+  job: db('job'),
+};
 
 const validateOrder = require('../../middleware/ValidateOrder');
 const log = require('../../../utils/logger');
@@ -30,13 +38,13 @@ const log = require('../../../utils/logger');
  *       }
  *     }
  *
- * @apiError NonUnique Unique constraint for this request was not met
- * @apiErrorExample NonUnique-Response
- *  HTTP/1.1 400 Bad Request
+ * @apiError InvalidQuantity Quantity critera for this request was not met
+ * @apiErrorExample InvalidQuantity-Response
+ *  HTTP/1.1 422 Unprocessable Entity
  *    {
  *      "status": "error",
- *      "error": "NonUnique",
- *      "message": "Provided `user_id` and `book_id` must be unique: [user.id(1), book.id(2)] already exists in the database.",
+ *      "error": "InvalidQuantity",
+ *      "message": "Quantity {12} received, expecting integer between 1 and 5.",
  *    }
  * 
  * @apiError NotFound Requested resource was not found.
@@ -50,7 +58,56 @@ const log = require('../../../utils/logger');
  * 
  */
 router.post('/create', validateOrder, async (req, res) => {
-  // api
+  const orderDB = tables.order;
+  const lineDB = tables.order_products;
+  const prodDB = tables.products;
+  const jobDB = tables.job;
+
+  const { stream_id, header, lines } = req.body;
+
+  // add order
+  const order = await orderDB.add({
+    stream_id,
+    header,
+  });
+
+  const lineResults = []
+  const products = {};
+
+  // add lines
+  for (let line of lines) {
+    const product = await prodDB.getBy({ 'name': line.product });
+
+    // Keep product name for creating job
+    products[product[0].id] = line.product;
+
+    const lineResult = await lineDB.add({
+      order_id: order.id,
+      product_id: product[0].id,
+      quantity: line.quantity,
+      status: 'received',
+    });
+
+    lineResults.push(lineResult);
+  }
+
+  // add job
+  const job = await jobDB.add({
+    order_id: order.id,
+    header: order.header,
+    stream_id: order.stream_id,
+    lines: JSON.stringify(lineResults.map(({ id, product_id, quantity }) => ({
+      id,
+      product: products[product_id],
+      quantity,
+    }))),
+  });
+
+  return res.json({
+    order,
+    lineResults,
+    job
+  })
 });
 
 module.exports = router;

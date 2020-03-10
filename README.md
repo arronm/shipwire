@@ -19,10 +19,6 @@
 The following options are available for testing:
 
 - `npm test:watch`
-- `npm test:coverate`
+- `npm test:coverage`
 - `npm test:once`
 
-
-### API Documentation
-1. `npm run docs:api`
-1. Access documentation at `/api/docs`

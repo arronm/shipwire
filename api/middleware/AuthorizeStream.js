@@ -6,6 +6,11 @@ const AuthorizeStream = (req, res, next) => {
       message: 'Invalid stream',
     });
 
+    // has header
+    if (!req.body.header) return res.status(500).json({
+      message: 'Missing header',
+    });
+
     next();
   } catch (error) {
     const err = await log.err(error);
