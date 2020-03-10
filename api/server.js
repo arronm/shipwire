@@ -20,7 +20,7 @@ server.use(middleware);
 server.use('/api/order', order);
 // server.use('/api/product', product);
 // server.use('/api/stream', stream);
-// server.use('/api/docs', express.static(__dirname + '/docs'));
+server.use('/api/docs', express.static(__dirname + '/docs'));
 
 server.get('/', (req, res) => {
   res.json({

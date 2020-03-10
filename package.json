@@ -11,7 +11,8 @@
     "data:latest": "npx knex migrate:latest",
     "data:seed": "npx knex seed:run",
     "allocator": "node utils/Allocator.js",
-    "streams": "node utils/DataSource.js"
+    "streams": "node utils/DataSource.js",
+    "docs": "apidoc -i ./api/ -o ./api/docs/"
   },
   "jest": {
     "testRunner": "jest-circus/runner",
@@ -30,6 +31,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "apidoc": "^0.20.0",
     "jest": "^25.1.0",
     "jest-circus": "^25.1.0",
     "knex-cleaner": "^1.3.0",

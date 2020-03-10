@@ -1,0 +1,9 @@
+{
+  "name": "Inventory API",
+  "version": "0.0.1",
+  "description": "API documentation for the Shipwire inventory project.",
+  "apidoc": {
+    "title": "API Docs",
+    "url" : "https://localhost:4444/api/"
+  }
+}

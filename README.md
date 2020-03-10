@@ -45,6 +45,11 @@ Allocator can be run at any point, as long as it doesn't run out of inventory it
 ### Allocator
 1. `npm run allocator`
 
+### API Docs
+1. Generate with `npm run docs`
+1. Start server `npm run dev:server`
+1. Docs available at /api/docs 
+
 ### Testing
 The following options are available for testing:
 

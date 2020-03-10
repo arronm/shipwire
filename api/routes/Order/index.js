@@ -20,7 +20,9 @@ const log = require('../../../utils/logger');
  *
  * @apiParam {integer} stream_id The id for the incoming stream.
  * @apiParam {string} header The order header provided by the stream.
- * @apiParam {{ product: string, quantity: integer }[]} lines Line items for the order.
+ * @apiParam {object[]} lines Line items for the order.
+ * @apiParam {string} lines.product Product name for this line item.
+ * @apiParam {integer} lines.quantity Quantity to be submitted for this line item.
  *
  * @apiSuccess {string} status Status of the request.
  * @apiSuccess {string} message Informative message indicating action(s) taken.
