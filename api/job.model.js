@@ -1,23 +1,23 @@
 const db = require('../data/models')('job');
 
-// return highest priority task
+// return highest priority job
 const getJob = async () => {
   return db.cb(async (db) => {
-    const task = await db('job')
+    const job = await db('job')
       .select('*')
       .orderByRaw('priority=0')
       .orderBy('priority')
       .orderBy('created_at')
       .limit(1)
       .first();
-    if (task) {
+    if (job) {
       return {
-        ...task,
-        lines: JSON.parse(task.lines),
+        ...job,
+        lines: JSON.parse(job.lines),
       };
     }
 
-    return task;
+    return job;
   });
 };
 

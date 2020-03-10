@@ -56,11 +56,11 @@ class Allocator {
     });
   }
   
-  async getTask() {
-    const task = await jobTable.getJob();
+  async getJob() {
+    const job = await jobTable.getJob();
 
-    // return next task to work on
-    return task;
+    // return next job to work on
+    return job;
   }
 
   createOutputString(list) {
@@ -94,9 +94,9 @@ class Allocator {
   addReceivedListing() {
     // save received status
     this.currentListing = {
-      header: this.task.header,
+      header: this.job.header,
       ...this.currentListing,
-      received: this.task.lines.reduce((previous, current) => {
+      received: this.job.lines.reduce((previous, current) => {
         previous[current.product] = current.quantity;
         return previous;
       }, {})
@@ -123,10 +123,10 @@ class Allocator {
     // TODO: Save to database, and update in-memory listing
   }
 
-  async finishTask() {
+  async finishJob() {
     this.listing.push(this.currentListing);
     // Log transaction prior to deletion?
-    await jobTable.remove(this.task.id);
+    await jobTable.remove(this.job.id);
     // console.log(result);
   }
 
@@ -152,8 +152,8 @@ class Allocator {
   }
 
   async processQueue() {
-    while (this.task) {
-      // Sleep 1 second between tasks
+    while (this.job) {
+      // Sleep 1 second between jobs
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       this.currentListing = {
@@ -165,7 +165,7 @@ class Allocator {
       this.addReceivedListing();
 
       // Loop over each line item in the order
-      for (const line of this.task.lines) {
+      for (const line of this.job.lines) {
         // check if we can fulfill this line item
         const fulfilled = await this.fulfillLineItem(line);
 
@@ -179,26 +179,26 @@ class Allocator {
         // TODO: log transaction?
       }
 
-      // complete this task
-      await this.finishTask()
+      // complete this job
+      await this.finishJob()
 
       // check total inventory
       if (this.inventory.__total === 0) {
         this.event.emit('InventoryDepleted');
       }
 
-      // get next task
-      this.task = await this.getTask();
+      // get next job
+      this.job = await this.getJob();
     }
 
     this.event.emit('QueueProcessed');
   }
 
   async watchQueue() {
-    while (!this.task) {
+    while (!this.job) {
       // Check the queue every 5 seconds
       await new Promise(resolve => setTimeout(resolve, 1000));
-      this.task = await this.getTask();
+      this.job = await this.getJob();
     }
 
     this.event.emit('QueueRefreshed');
@@ -215,8 +215,8 @@ class Allocator {
       this.event.emit('InventoryDepleted');
     }
     
-    // set up initial task
-    this.task = await this.getTask();
+    // set up initial job
+    this.job = await this.getJob();
 
     // TODO: Save transaction for starting allocator
     this.processQueue();
