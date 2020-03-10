@@ -107,6 +107,41 @@ router.post('/create', validateOrder, async (req, res) => {
   }
 });
 
+
+const createOrder = require('../../../services/createOrder');
+const createJob = require('../../../services/createJob');
+
+router.get('/testdata', async (req, res) => {
+  const order = {
+    stream_id: 2,
+    header: '3',
+    lines: [
+      {
+        product: 'A',
+        quantity: 4,
+      },
+      {
+        product: 'B',
+        quantity: 2,
+      },
+    ],
+  };
+
+  models = {
+    order: tables.order,
+    product: tables.products,
+    line: tables.order_products,
+  };
+
+  const createdOrder = await createOrder(order, models);
+  const createdJob = await createJob(createdOrder, { job: tables.job });
+
+  return res.json({
+    order: createdOrder,
+    job: createdJob,
+  });
+});
+
 router.get('/status/:id', async (req, res) => {
   try {
     // api
