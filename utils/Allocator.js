@@ -45,12 +45,14 @@ class Allocator {
       process.exit();
     });
 
-    process.on('unhandledRejection', (err) => {
+    process.on('unhandledRejection', async (err) => {
+      await this.generateListing();
       console.log(err);
       process.exit();
     });
 
-    process.on('uncaughtException', (err) => {
+    process.on('uncaughtException', async (err) => {
+      await this.generateListing();
       console.log(err);
       process.exit();
     });
