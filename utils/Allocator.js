@@ -14,13 +14,16 @@ const makeDir = fs.promises.mkdir;
 
 const log = require('./logger');
 
-const productTable = require('../api/routes/Product/product.model');
-const jobTable = require('../api/job.model');
-const lineTable = require('../data/models')('order_products');
+const models = {
+  product: require('../api/routes/Product/product.model'),
+  job: require('../api/job.model'),
+  line: require('../data/models')('order_products'),
+};
 
 class Allocator {
-  constructor() {
+  constructor(models) {
     this.event = new EventEmitter();
+    this.models = models;
     this.startedAt = Date.now();
     this.listing = []
 
@@ -59,7 +62,7 @@ class Allocator {
   }
   
   async getJob() {
-    const job = await jobTable.getJob();
+    const job = await this.models.job.getJob();
 
     // return next job to work on
     return job;
@@ -112,7 +115,7 @@ class Allocator {
 
   async updateLineStatus(status, line) {
     // Update line item with new status
-    await lineTable.update(line.id, {
+    await this.models.line.update(line.id, {
       status,
     });
 
@@ -128,7 +131,7 @@ class Allocator {
   async finishJob() {
     this.listing.push(this.currentListing);
     // Log transaction prior to deletion?
-    await jobTable.remove(this.job.id);
+    await this.models.job.remove(this.job.id);
     // console.log(result);
   }
 
@@ -139,9 +142,9 @@ class Allocator {
     if (canFulfill) {
       // fulfill line item
       this.inventory[product] -= quantity;
-      const { id: product_id } = await productTable.getBy({ name: product }).first();
+      const { id: product_id } = await this.models.product.getBy({ name: product }).first();
 
-      await productTable.update(product_id, {
+      await this.models.product.update(product_id, {
         inventory: this.inventory[product],
       });
 
@@ -210,7 +213,7 @@ class Allocator {
     await makeDir(process.cwd() + '/output', { recursive: true });
 
     // get initial inventory
-    this.inventory = await productTable.getInventory();
+    this.inventory = await this.models.product.getInventory();
     console.log('starting inventory:', this.inventory);
     
     if (this.inventory.__total === 0) {
@@ -225,7 +228,7 @@ class Allocator {
   }
 }
 
-const allocator = new Allocator();
+const allocator = new Allocator(models);
 console.log('Started at:', allocator.startedAt);
 
 allocator.start();
